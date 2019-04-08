@@ -24,7 +24,7 @@ namespace CalMotorsShit
         public Image<Gray, byte> BinaryImage{get;set;}//记录二值化图像
         public Dictionary<Point, int> dividedCoutour;//记录四条边的点集
         public Dictionary<Dictionary<Point, int>,string> segmentLine;//记录单边分5组--临时用
-        public List<double> motorShif = new List<double>();
+      
 
 
         #region 全局变量
@@ -186,16 +186,17 @@ namespace CalMotorsShit
                 #region 去除白色不相干区域块
                 VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();//区块集合
                 Image<Gray, byte> dnc = new Image<Gray, byte>(binaryImg.Width, binaryImg.Height);
-                CvInvoke.FindContours(binaryImg, contours, dnc, RetrType.Ccomp, ChainApproxMethod.ChainApproxNone);//轮廓集合
+                CvInvoke.FindContours(binaryImg, contours, dnc, RetrType.External, ChainApproxMethod.ChainApproxNone);//轮廓集合
+                //CvInvoke.DrawContours(new Image<Bgr,byte>(img), contours, 0, new MCvScalar(0, 255, 255), 4);
                 myContours.Clear();
                 for (int k = 0; k < contours.Size; k++)
                 {
                     double area = CvInvoke.ContourArea(contours[k]);//获取各连通域的面积 
-                    if (area < 1000000)//根据面积作筛选(指定最小面积,最大面积2500000):
+                    if (area < 500000)//根据面积作筛选(指定最小面积,最大面积2500000):
                     {
                         CvInvoke.FillConvexPoly(binaryImg, contours[k], new MCvScalar(0));
                     }
-                    if (area > 1500000)//3000000
+                    if (area > 1000000)//3000000
                     {
                         myContours.Add(contours[k]);
                     }
@@ -216,9 +217,9 @@ namespace CalMotorsShit
         /// </summary>
         /// <param name="bitmap">产品图像</param>
         /// <param name="cameraID">相机编号</param>
-        public void GetProductParamters(Bitmap bitmap,int cameraID)
+        public List<double> GetProductParamters(Bitmap bitmap,int cameraID)
         {
-
+            List<double> motorShif = new List<double>();
             List<VectorOfPoint> imageContours = GetContours(bitmap, cameraID);
             VectorOfPoint productContour = imageContours.Max();
             Point[] pst = productContour.ToArray();//获取轮廓上所有的点集
@@ -236,7 +237,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 4 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 4 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 8 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 8)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 8 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 8 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y)-4  && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y)+4 )
                             {
                                 dividedCoutour[item] =0;
                             }
@@ -246,7 +247,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 8 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 8 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) +4 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 4)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) && item.X >= (p1.X > p2.X ? p2.X : p1.X)  && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) +40 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 10)
                             {
                                 dividedCoutour[item] = 1;
                             }
@@ -256,17 +257,17 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 4 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 4 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 8 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 8)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 8 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 8 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y)-4 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y)+4)
                             {
                                 dividedCoutour[item] = 2;
                             }
                         }
                     }
-                    else//下
+                    else if (p1.X > width / 2 && p1.Y > height / 2)//下
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 8 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 8 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 4 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 4)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X)-4 && item.X >= (p1.X > p2.X ? p2.X : p1.X)+4 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 10 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 10)
                             {
                                 dividedCoutour[item] = 3;
                             }
@@ -299,18 +300,18 @@ namespace CalMotorsShit
                 {
                     for (int i = 0; i < left.Count; i++)
                     {
-                        if (left[i] > AxisShort * 2 / 3f)
+                        if (left[i] > AxisLong * 3 / 5f)
                         {
                             left[i] = 0;
                         }
                     }
                 }
                 up = GetFiveDistanceOnLine(RotatedAngle, new Point((int)po.X,(int)po.Y), AxisLong, AxisShort,dividedCoutour.Where(a => a.Value ==1).ToDictionary(a => a.Key, a => a.Value));
-                if (cameraID==1)
+                if (cameraID==1)//F
                 {
                     for (int i = 0; i < up.Count; i++)
                     {
-                        if (up[i] > AxisShort * 2 / 3f)
+                        if (up[i] > AxisLong * 3 / 5f)
                         {
                             up[i] = 0;
                         }
@@ -321,7 +322,7 @@ namespace CalMotorsShit
                 {
                     for (int i = 0; i < right.Count; i++)
                     {
-                        if (right[i] > AxisShort*2 / 3f)
+                        if (right[i] > AxisLong*3 / 5f)
                         {
                             right[i] = 0;
                         }
@@ -332,23 +333,30 @@ namespace CalMotorsShit
                 {
                     for (int i = 0; i < bottom.Count; i++)
                     {
-                        if (bottom[i] > AxisShort * 2 / 3f)
+                        if (bottom[i] > AxisLong * 3 / 5f)
                         {
                             bottom[i] = 0;
                         }
                     }
                 }
-
-                motorShif = left.Concat(up).Concat(right).Concat(bottom).ToList<double>();
-                //Dictionary<Point, string> detailLinePoints = new Dictionary<Point, string>();
-                //for (int i = 0; i < 4; i++)
-                //{
-                //    if (dividedCoutour.Where(xav=>xav.Value==i).Select(xav=>xav.Key).Average(xav=>xav.X)<width/2
-                //        && dividedCoutour.Where(yav => yav.Value == i).Select(yav => yav.Key).Average(yav => yav.X) < height / 2)
-                //    {
-                //        dividedCoutour.Where(xav => xav.Value == i).
-                //    }
-                //}
+               
+                if (cameraID==1)//F
+                {
+                    motorShif = left.Concat(up).Concat(right).Concat(bottom).ToList<double>();//左-上-右-下
+                   
+                }
+                else
+                {
+                    motorShif = bottom.Concat(left).Concat(up).Concat(right).ToList<double>();//下-左-上-右
+                }
+                double _20 = motorShif[19];
+                double _21 = motorShif[9];
+                double _22 = motorShif[8];
+                double _23 = motorShif[18];
+                motorShif.Add(_20);
+                motorShif.Add(_21);
+                motorShif.Add(_22);
+                motorShif.Add(_23);
 
                 Matrix<double> imgCenter = new Matrix<double>(3, 1)
                 {
@@ -359,7 +367,6 @@ namespace CalMotorsShit
                 //Matrix<double> cameraCenter = imgCenter.Inverse();
                 if (cameraID == 0)
                 {
-                    
                     CenterOfRobot = new PointF((float.Parse((( rightCameraTrans* imgCenter)[0, 0]).ToString())), (float.Parse((( rightCameraTrans* imgCenter )[1, 0]).ToString())));
                 }
                 else
@@ -367,9 +374,7 @@ namespace CalMotorsShit
                     CenterOfRobot = new PointF((float.Parse((( frontCameraTrans* imgCenter)[0, 0]).ToString())), (float.Parse((( frontCameraTrans* imgCenter )[1, 0]).ToString())));
                 }
             }
-
-
-        
+            return motorShif;
         }
 
         /// <summary>
@@ -381,7 +386,7 @@ namespace CalMotorsShit
         /// <param name="AxisShort"></param>
         /// <param name="linePoints"></param>
         /// <returns></returns>
-        public List<double> GetFiveDistanceOnLine(double angle,Point centerPoint, double AxisLong,double AxisShort, Dictionary<Point,int> linePoints)
+        private List<double> GetFiveDistanceOnLine(double angle,Point centerPoint, double AxisLong,double AxisShort, Dictionary<Point,int> linePoints)
         {
             
             List<double> fiveD = new List<double>();
@@ -552,7 +557,7 @@ namespace CalMotorsShit
                             if (i <= t1 && i >= t0)//中间
                             {
                                 segInnerLine[aLine[i]] = 0;
-                            }
+                            } 
                             else if (i <= t2 && i >= t1)//右一
                             {
                                 segInnerLine[aLine[i]] = 1;
@@ -662,7 +667,7 @@ namespace CalMotorsShit
         /// <param name="B">BY</param>
         /// <param name="C"></param>
         /// <returns></returns>
-        public double GetPoint2LineDistance(Point p,double A,double B,double C)
+        private double GetPoint2LineDistance(Point p,double A,double B,double C)
         {
             double dis = 0;
             dis = Math.Abs(A * p.X + B * p.Y + C) / (Math.Sqrt(A * A + B * B));

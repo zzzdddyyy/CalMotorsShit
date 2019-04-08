@@ -90,10 +90,10 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(1975, 13);
+            this.textBox1.Location = new System.Drawing.Point(1974, 13);
             this.textBox1.Multiline = true;
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(235, 792);
+            this.textBox1.Size = new System.Drawing.Size(280, 792);
             this.textBox1.TabIndex = 4;
             // 
             // Form1
@@ -101,7 +101,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(12F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(2222, 1231);
+            this.ClientSize = new System.Drawing.Size(2258, 1231);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.btnDetect);
             this.Controls.Add(this.pictureBox1);

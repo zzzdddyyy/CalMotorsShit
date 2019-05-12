@@ -19,7 +19,7 @@ namespace CalMotorsShit
     {
         int cameraID;
         FindCenterAndSlope CenterAndSlope = new FindCenterAndSlope();
-
+        FindCenterAndSlope.ImageInfo imgInfo = new FindCenterAndSlope.ImageInfo();
 
         public Form1()
         {
@@ -51,7 +51,7 @@ namespace CalMotorsShit
             {
                 return;
             }
-            List<double> motorShif = CenterAndSlope.GetProductParamters(myImg.Bitmap, cameraID);
+            imgInfo = CenterAndSlope.GetProductParamters(myImg.Bitmap, cameraID,80);
             #region 可视化
             ////画点
             //Dictionary<Point, int> upLine = new Dictionary<Point, int>();
@@ -182,9 +182,9 @@ namespace CalMotorsShit
             //}
 
             #endregion
-            for (int i = 0; i < motorShif.Count; i++)
+            for (int i = 0; i < imgInfo.MotorShift.Length; i++)
             { 
-                textBox1.Text  += "#【" + i + "】" + motorShif[i].ToString() + "\r\n";
+                textBox1.Text  += "#【" + i + "】" + imgInfo.MotorShift[i].ToString() + "\r\n";
             }
             pictureBox1.Image = myImg.ToBitmap();
         }

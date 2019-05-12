@@ -38,7 +38,6 @@ namespace CalMotorsShit
         private const int width = 5472;      //相机分辨率 2000W像素
         private const int height = 3648;
         private Size imageSize = new Size(width, height);//图像的大小
-        private double pr=1.66;//  pixelRatio
 
         private Matrix<double> cameraMatrix = new Matrix<double>(3, 3);//相机内部参数
         private Matrix<double> distCoeffs = new Matrix<double>(5, 1);//畸变参数
@@ -49,8 +48,8 @@ namespace CalMotorsShit
         private Matrix<float> mapy = new Matrix<float>(height, width);
         private MCvTermCriteria criteria = new MCvTermCriteria(100, 1e-5);//求角点迭代的终止条件（精度）
 
-        private Matrix<double> frontCameraTrans = new Matrix<double>(3, 3);
-        private Matrix<double> rightCameraTrans = new Matrix<double>(3, 3);
+        private Matrix<double> frontCameraTrans = new Matrix<double>(1, 6);
+        private Matrix<double> rightCameraTrans = new Matrix<double>(1, 6);
 
         readonly Mat kernelClosing = CvInvoke.GetStructuringElement(ElementShape.Rectangle, new Size(5, 5), new Point(-1, -1));//运算核
         #endregion
@@ -58,67 +57,87 @@ namespace CalMotorsShit
         /// <summary>
         /// 获取高架（右侧）相机矩阵和畸变矩阵，cameraID==0
         /// </summary>
-        private void GetRightCamParams()
+        private void GetRightCamParams(int spongeH)
         {
             //填充相机矩阵
-            cameraMatrix[0, 0] = 5059.12931834576;
-            cameraMatrix[0, 1] = -0.692392244384381;
-            cameraMatrix[0, 2] = 2750.92723044525;
+            cameraMatrix[0, 0] = 4946.18163894192;
+            cameraMatrix[0, 1] = -0.624726287412256;
+            cameraMatrix[0, 2] = 2744.28781898738;
             cameraMatrix[1, 0] = 0;
-            cameraMatrix[1, 1] = 5057.53403912353;
-            cameraMatrix[1, 2] = 1858.08491664551;
+            cameraMatrix[1, 1] = 4945.59080271046;
+            cameraMatrix[1, 2] = 1877.58021306542;
             cameraMatrix[2, 0] = 0;
             cameraMatrix[2, 1] = 0;
             cameraMatrix[2, 2] = 1;
             //填充畸变矩阵
-            distCoeffs[0, 0] = -0.0627050596821338;//K1
-            distCoeffs[1, 0] = 0.142587435311481;//K2
-            distCoeffs[2, 0] = -0.000113201879186569;//P1
-            distCoeffs[3, 0] = 0.000348821210979477;//P2
+            distCoeffs[0, 0] = -0.0710236695402012;//K1
+            distCoeffs[1, 0] = 0.128020024828545;//K2
+            distCoeffs[2, 0] = 0;//P1
+            distCoeffs[3, 0] = 0;//P2
             distCoeffs[4, 0] = 0;//K3
             //填充坐标变换矩阵
-            rightCameraTrans[0, 0] = -1.51127803e-02;
-            rightCameraTrans[0, 1] = 6.43187885e-01;
-            rightCameraTrans[0, 2] = -1.12344669e+03;
-            rightCameraTrans[1, 0] = 6.44677412e-01;
-            rightCameraTrans[1, 1] = 1.38359506e-02;
-            rightCameraTrans[1, 2] = 8.27866536e+02;
-            rightCameraTrans[2, 0] = -5.42101086e-20;
-            rightCameraTrans[2, 1] = -6.77626358e-21;
-            rightCameraTrans[2, 2] = 1.00000000e+00;
+            //填充坐标变换矩阵
+            if (spongeH <= 60)
+            {
+                rightCameraTrans[0, 0] = -0.0133162597194314;
+                rightCameraTrans[0, 1] = 0.64426577091217;
+                rightCameraTrans[0, 2] = -1137.92065429688;
+                rightCameraTrans[0, 3] = 0.644132971763611;
+                rightCameraTrans[0, 4] = 0.01278739515692;
+                rightCameraTrans[0, 5] = 831.276245117188;
+            }
+            else if (spongeH > 60 && spongeH <= 110)
+            {
+                rightCameraTrans[0, 0] = -0.0131675554439425;
+                rightCameraTrans[0, 1] = 0.633718132972717;
+                rightCameraTrans[0, 2] = -1117.94262695313;
+                rightCameraTrans[0, 3] = 0.633914828300476;
+                rightCameraTrans[0, 4] = 0.0123505061492324;
+                rightCameraTrans[0, 5] = 860.467102050781;
+            }
         }
 
         /// <summary>
         /// 获取前方相机矩阵和畸变矩阵，cameraID==1
         /// </summary>
-        private void GetFrontCamParams()
+        private void GetFrontCamParams(int spongeH)
         {
             //填充相机矩阵
-            cameraMatrix[0, 0] = 5010.81789826726;
-            cameraMatrix[0, 1] = 0.168076608984161;
-            cameraMatrix[0, 2] = 2768.70959640510;
+            cameraMatrix[0, 0] = 4932.50425753357;
+            cameraMatrix[0, 1] = -0.132857117137422;
+            cameraMatrix[0, 2] = 2733.57870537282;
             cameraMatrix[1, 0] = 0;
-            cameraMatrix[1, 1] = 5011.24572785725;
-            cameraMatrix[1, 2] = 1806.34169717229;
+            cameraMatrix[1, 1] = 4932.08299994076;
+            cameraMatrix[1, 2] = 1816.99165090490;
             cameraMatrix[2, 0] = 0;
             cameraMatrix[2, 1] = 0;
             cameraMatrix[2, 2] = 1;
             //填充畸变矩阵,先径向再切向
-            distCoeffs[0, 0] = -0.0625967952090845;//K1
-            distCoeffs[1, 0] = 0.133984194777852;//K2
-            distCoeffs[2, 0] = -0.000122713140590104;//P1
-            distCoeffs[3, 0] = 0.00160031845139996;//P2
+            distCoeffs[0, 0] = -0.06603195967528847;//K1
+            distCoeffs[1, 0] = 0.116813172417637;//K2
+            distCoeffs[2, 0] = 0;//P1
+            distCoeffs[3, 0] = 0;//P2
             distCoeffs[4, 0] = 0;//K3
-            //填充坐标变换矩阵
-            frontCameraTrans[0, 0] = -9.44537132e-05;
-            frontCameraTrans[0, 1] = -6.26494111e-01;
-            frontCameraTrans[0, 2] = 3.66581663e+03;
-            frontCameraTrans[1, 0] = -6.29213379e-01;
-            frontCameraTrans[1, 1] = 2.48650556e-03;
-            frontCameraTrans[1, 2] = 1.62770209e+03;
-            frontCameraTrans[2, 0] = -1.60936260e-20;
-            frontCameraTrans[2, 1] = 5.42101086e-20;
-            frontCameraTrans[2, 2] = 1.00000000e+00;
+                                 //填充坐标变换矩阵
+            if (spongeH <= 60)
+            {
+                frontCameraTrans[0, 0] = 0.00522032054141164;
+                frontCameraTrans[0, 1] = -0.647499322891235;
+                frontCameraTrans[0, 2] = 3708.35815429688;
+                frontCameraTrans[0, 3] = -0.647542834281921;
+                frontCameraTrans[0, 4] = -0.0053061256185174;
+                frontCameraTrans[0, 5] = 1713.44116210938;
+
+            }
+            else if (spongeH < 200 && spongeH > 60)
+            {
+                frontCameraTrans[0, 0] = 0.00453260121867061;
+                frontCameraTrans[0, 1] = -0.624084889888763;
+                frontCameraTrans[0, 2] = 3667.45654296875;
+                frontCameraTrans[0, 3] = -0.623522400856018;
+                frontCameraTrans[0, 4] = -0.0045740413479507;
+                frontCameraTrans[0, 5] = 1645.32934570313;
+            }
         }
         /// <summary>
         /// 获取ROI
@@ -148,7 +167,7 @@ namespace CalMotorsShit
         /// <param name="img">产品图像</param>
         /// <param name="cameraID">相机编号</param>
         /// <returns></returns>
-        private List<VectorOfPoint> GetContours(Bitmap img,int cameraID)
+        private List<VectorOfPoint> GetContours(Bitmap img,int cameraID,int spongeH)
         {
             #region 灰度处理
             //灰度化
@@ -158,12 +177,12 @@ namespace CalMotorsShit
             //获取畸变参数
             if (cameraID == 0)
             {
-                GetRightCamParams();
+                GetRightCamParams(spongeH);
                 resImg = GetROI(grayImg, new Rectangle(new Point(850, 0), new Size(4360 - 850, 3300)));
             }
             else
             {
-                GetFrontCamParams();
+                GetFrontCamParams(spongeH);
                 resImg = GetROI(grayImg, new Rectangle(new Point(700, 70), new Size(4300 - 700, 3500-70)));
             }
 
@@ -224,12 +243,12 @@ namespace CalMotorsShit
         /// </summary>
         /// <param name="bitmap">产品图像</param>
         /// <param name="cameraID">相机编号</param>
-        public ImageInfo GetProductParamters(Bitmap bitmap,int cameraID)
+        public ImageInfo GetProductParamters(Bitmap bitmap,int cameraID,int spongeH)
         {
             ImageInfo imageInfo = new ImageInfo();
             Dictionary<Point, int> dividedCoutour;//记录四条边的点集
             List<double> motorShif = new List<double>();
-            List<VectorOfPoint> imageContours = GetContours(bitmap, cameraID);
+            List<VectorOfPoint> imageContours = GetContours(bitmap, cameraID, spongeH);
             VectorOfPoint productContour = imageContours.Max();
             Point[] pst = productContour.ToArray();//获取轮廓上所有的点集
             if (productContour!=null)
@@ -371,7 +390,7 @@ namespace CalMotorsShit
                 //    File.AppendAllText("ContourPoints.txt", "X=" + item.Key.X.ToString() +"\t\t"+ "Y=" + item.Key.Y.ToString() +"\t\t"+"Key="+item.Value.ToString()+ "\n\r");
                 //}
 
-               
+
 
                 Matrix<double> imgCenter = new Matrix<double>(3, 1)
                 {
@@ -382,11 +401,15 @@ namespace CalMotorsShit
                 //Matrix<double> cameraCenter = imgCenter.Inverse();
                 if (cameraID == 0)
                 {
-                    imageInfo.CenterOfRobot = new PointF((float.Parse((( rightCameraTrans* imgCenter)[0, 0]).ToString())), (float.Parse((( rightCameraTrans* imgCenter )[1, 0]).ToString())));
+                    float x = (float)(rightCameraTrans[0, 0] * imgCenter[0, 0] + rightCameraTrans[0, 1] * imgCenter[1, 0] + rightCameraTrans[0, 2]);
+                    float y = (float)(rightCameraTrans[0, 3] * imgCenter[0, 0] + rightCameraTrans[0, 4] * imgCenter[1, 0] + rightCameraTrans[0, 5]);
+                    imageInfo.CenterOfRobot = new PointF(x, y);
                 }
                 else
                 {
-                    imageInfo.CenterOfRobot = new PointF((float.Parse((( frontCameraTrans* imgCenter)[0, 0]).ToString())), (float.Parse((( frontCameraTrans* imgCenter )[1, 0]).ToString())));
+                    float x = (float)(frontCameraTrans[0, 0] * imgCenter[0, 0] + frontCameraTrans[0, 1] * imgCenter[1, 0] + frontCameraTrans[0, 2]);
+                    float y = (float)(frontCameraTrans[0, 3] * imgCenter[0, 0] + frontCameraTrans[0, 4] * imgCenter[1, 0] + frontCameraTrans[0, 5]);
+                    imageInfo.CenterOfRobot = new PointF(x, y);
                 }
             }
 
@@ -396,13 +419,14 @@ namespace CalMotorsShit
         /// <summary>
         /// 计算每条线上5个电机的移动距离
         /// </summary>
-        /// <param name="angle">角度制</param>
-        /// <param name="centerPoint"></param>
-        /// <param name="AxisLong"></param>
-        /// <param name="AxisShort"></param>
+        /// <param name="angle">旋转角度</param>
+        /// <param name="centerPoint">中心像素点坐标</param>
+        /// <param name="AxisLong">长轴</param>
+        /// <param name="AxisShort">短轴</param>
         /// <param name="linePoints"></param>
+        /// <param name="pr"像素比</param>
         /// <returns></returns>
-        private List<double> GetFiveDistanceOnLine(double angle,Point centerPoint, double AxisLong,double AxisShort, Dictionary<Point,int> linePoints)
+        private List<double> GetFiveDistanceOnLine(double angle,Point centerPoint, double AxisLong,double AxisShort, Dictionary<Point,int> linePoints, double pr = 1.66)
         {
             Dictionary<Dictionary<Point, int>, string> segmentLine;//记录单边分5组--临时用
             List<double> fiveD = new List<double>();

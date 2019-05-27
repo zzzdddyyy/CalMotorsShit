@@ -18,8 +18,8 @@ namespace CalMotorsShit
     public partial class Form1 : Form
     {
         int cameraID;
-        FindCenterAndSlope CenterAndSlope = new FindCenterAndSlope();
-        FindCenterAndSlope.ImageInfo imgInfo = new FindCenterAndSlope.ImageInfo();
+        KHImageServices CenterAndSlope = new KHImageServices();
+        KHImageServices.ImageInfo imgInfo = new KHImageServices.ImageInfo();
 
         public Form1()
         {
@@ -51,7 +51,7 @@ namespace CalMotorsShit
             {
                 return;
             }
-            imgInfo = CenterAndSlope.GetProductParamters(myImg.Bitmap, cameraID,80);
+            imgInfo = CenterAndSlope.GetProductParamters(myImg.Bitmap, cameraID,175);
             #region 可视化
             ////画点
             //Dictionary<Point, int> upLine = new Dictionary<Point, int>();

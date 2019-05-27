@@ -1,4 +1,10 @@
-﻿using System;
+﻿///时间：2019/05/12-21/00
+///地点：恒康现场
+///Authentication：ZDY
+///内容：此类包含了相机畸变校正、图像处理、角点识别、旋转角度获取、
+///根据图像边长像素数量自适应计算24电机位移量
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -12,7 +18,7 @@ using Emgu.CV.Util;
 
 namespace CalMotorsShit
 {
-    public class FindCenterAndSlope
+    public class KHImageServices
     {
         //字段
         //public double RotatedAngle { get; set; }//记录旋转角
@@ -76,24 +82,50 @@ namespace CalMotorsShit
             distCoeffs[3, 0] = 0;//P2
             distCoeffs[4, 0] = 0;//K3
             //填充坐标变换矩阵
-            //填充坐标变换矩阵
-            if (spongeH <= 60)
+            if (spongeH <= 15)
             {
-                rightCameraTrans[0, 0] = -0.0133162597194314;
-                rightCameraTrans[0, 1] = 0.64426577091217;
-                rightCameraTrans[0, 2] = -1137.92065429688;
-                rightCameraTrans[0, 3] = 0.644132971763611;
-                rightCameraTrans[0, 4] = 0.01278739515692;
-                rightCameraTrans[0, 5] = 831.276245117188;
+                rightCameraTrans[0, 0] = -5.04228004e-03;
+                rightCameraTrans[0, 1] = 6.97035198e-01;
+                rightCameraTrans[0, 2] = -1.74467751e+03;
+                rightCameraTrans[0, 3] = 6.95646602e-01;
+                rightCameraTrans[0, 4] = 4.65284138e-03;
+                rightCameraTrans[0, 5] = 6.91376326e+02;
             }
-            else if (spongeH > 60 && spongeH <= 110)
+            else if (spongeH > 15 && spongeH <= 55)
             {
-                rightCameraTrans[0, 0] = -0.0131675554439425;
-                rightCameraTrans[0, 1] = 0.633718132972717;
-                rightCameraTrans[0, 2] = -1117.94262695313;
-                rightCameraTrans[0, 3] = 0.633914828300476;
-                rightCameraTrans[0, 4] = 0.0123505061492324;
-                rightCameraTrans[0, 5] = 860.467102050781;
+                rightCameraTrans[0, 0] = -5.52666766e-03;
+                rightCameraTrans[0, 1] = 6.89446652e-01;
+                rightCameraTrans[0, 2] = -1.72967079e+03;
+                rightCameraTrans[0, 3] = 6.88204324e-01;
+                rightCameraTrans[0, 4] = 4.45682892e-03;
+                rightCameraTrans[0, 5] = 7.12227372e+02;
+            }
+            else if (spongeH > 55 && spongeH <= 75)
+            {
+                rightCameraTrans[0, 0] = -4.37142654e-03;
+                rightCameraTrans[0, 1] = 6.85270616e-01;
+                rightCameraTrans[0, 2] = -1.72347553e+03;
+                rightCameraTrans[0, 3] = 6.83202904e-01;
+                rightCameraTrans[0, 4] = 3.90862861e-03;
+                rightCameraTrans[0, 5] = 7.25361627e+02;
+            }
+            else if (spongeH > 75 && spongeH <= 95)
+            {
+                rightCameraTrans[0, 0] = -4.53470345e-03;
+                rightCameraTrans[0, 1] = 6.81258505e-01;
+                rightCameraTrans[0, 2] = -1.71636378e+03;
+                rightCameraTrans[0, 3] = 6.79263048e-01;
+                rightCameraTrans[0, 4] = 3.83386933e-03;
+                rightCameraTrans[0, 5] = 7.36451842e+02;
+            }
+            else if (spongeH > 95)
+            {
+                rightCameraTrans[0, 0] = -4.81150536e-03;
+                rightCameraTrans[0, 1] = 6.79535937e-01;
+                rightCameraTrans[0, 2] = -1.71339340e+03;
+                rightCameraTrans[0, 3] = 6.77619641e-01;
+                rightCameraTrans[0, 4] = 3.97985425e-03;
+                rightCameraTrans[0, 5] = 7.40662060e+02;
             }
         }
 
@@ -118,25 +150,43 @@ namespace CalMotorsShit
             distCoeffs[2, 0] = 0;//P1
             distCoeffs[3, 0] = 0;//P2
             distCoeffs[4, 0] = 0;//K3
-                                 //填充坐标变换矩阵
+            //填充坐标变换矩阵
             if (spongeH <= 60)
             {
-                frontCameraTrans[0, 0] = 0.00522032054141164;
-                frontCameraTrans[0, 1] = -0.647499322891235;
-                frontCameraTrans[0, 2] = 3708.35815429688;
-                frontCameraTrans[0, 3] = -0.647542834281921;
-                frontCameraTrans[0, 4] = -0.0053061256185174;
-                frontCameraTrans[0, 5] = 1713.44116210938;
+                frontCameraTrans[0, 0] = 6.98343875e-01;
+                frontCameraTrans[0, 1] = 4.35391944e-04;
+                frontCameraTrans[0, 2] = 5.83221141e+02;
+                frontCameraTrans[0, 3] = 4.02996368e-04;
+                frontCameraTrans[0, 4] = -6.98756329e-01;
+                frontCameraTrans[0, 5] = 1.13790727e+03;
 
             }
-            else if (spongeH < 200 && spongeH > 60)
+            else if (spongeH <= 175 && spongeH > 60)
             {
-                frontCameraTrans[0, 0] = 0.00453260121867061;
-                frontCameraTrans[0, 1] = -0.624084889888763;
-                frontCameraTrans[0, 2] = 3667.45654296875;
-                frontCameraTrans[0, 3] = -0.623522400856018;
-                frontCameraTrans[0, 4] = -0.0045740413479507;
-                frontCameraTrans[0, 5] = 1645.32934570313;
+                frontCameraTrans[0, 0] = 6.73722735e-01;
+                frontCameraTrans[0, 1] = 5.89894437e-04;
+                frontCameraTrans[0, 2] = 6.51819702e+02;
+                frontCameraTrans[0, 3] = 1.10845668e-03;
+                frontCameraTrans[0, 4] = -6.74728521e-01;
+                frontCameraTrans[0, 5] = 1.09239819e+03;
+            }
+            else if (spongeH <= 225 && spongeH > 175)
+            {
+                frontCameraTrans[0, 0] = 6.66144136e-01;
+                frontCameraTrans[0, 1] = -3.51634805e-04;
+                frontCameraTrans[0, 2] = 6.73332341e+02;
+                frontCameraTrans[0, 3] = 3.98092828e-04;
+                frontCameraTrans[0, 4] = -6.67180844e-01;
+                frontCameraTrans[0, 5] = 1.08068911e+03;
+            }
+            else if (spongeH > 225)
+            {
+                frontCameraTrans[0, 0] = 6.49604925e-01;
+                frontCameraTrans[0, 1] = -3.21692944e-04;
+                frontCameraTrans[0, 2] = 7.18122346e+02;
+                frontCameraTrans[0, 3] = 3.96075968e-04;
+                frontCameraTrans[0, 4] = -6.50491543e-01;
+                frontCameraTrans[0, 5] = 1.05098143e+03;
             }
         }
         /// <summary>
@@ -174,16 +224,16 @@ namespace CalMotorsShit
             Image<Gray, byte>  grayImg = new Image<Gray, byte>(img).PyrDown().PyrUp();
             Image<Gray, byte> resImg = grayImg.CopyBlank();
             Image<Gray, byte>  remapImg = grayImg.CopyBlank();//映射后图像
-            //获取畸变参数
+              //获取畸变参数
             if (cameraID == 0)
             {
                 GetRightCamParams(spongeH);
-                resImg = GetROI(grayImg, new Rectangle(new Point(850, 0), new Size(4360 - 850, 3300)));
+                resImg = GetROI(grayImg, new Rectangle(new Point(1070, 0), new Size(4330 - 1070, 3648)));
             }
             else
             {
                 GetFrontCamParams(spongeH);
-                resImg = GetROI(grayImg, new Rectangle(new Point(700, 70), new Size(4300 - 700, 3500-70)));
+                resImg = GetROI(grayImg, new Rectangle(new Point(1150, 0), new Size(4390 - 1150, 3500 - 150)));
             }
 
             //畸变校正
@@ -236,7 +286,6 @@ namespace CalMotorsShit
             #endregion
             return myContours;
         }
-
 
         /// <summary>
         /// 获取机器人法兰中心移动坐标和旋转角度，camera=0代表右侧相机，camera=1代表前方向机

@@ -87,7 +87,7 @@ namespace CalMotorsShit
             FlashLogger.Info("Bottom-Num =>"+bottomLine.Count.ToString());
             FlashLogger.Info("Right-Num =>"+rightLine.Count.ToString());
             FlashLogger.Info("Left-Num =>"+leftLine.Count.ToString());
-
+            CvInvoke.Circle(myImg, new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), 10, new MCvScalar(255, 25, 100), 10);
             //=========BOTTOM==================
             foreach (var item in bottomLine.Where(a => a.Value == 0))
             {
@@ -115,86 +115,109 @@ namespace CalMotorsShit
                 CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 120, 255), 3);
             }
 
-            //++++++++++++up++++++++++++++++++++
-            foreach (var item in CenterAndSlope.DividedContours.Where(a => a.Value == 0).ToDictionary(a => a.Key, a => a.Value))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
-                //CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
-            }
-            foreach (var item in upLine.Where(a => a.Value == 1))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 255), 3);
-            }
-            foreach (var item in upLine.Where(a => a.Value == 2))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 5), 3);
-            }
-            foreach (var item in upLine.Where(a => a.Value == 3))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 0, 0), 3);
-            }
-            foreach (var item in upLine.Where(a => a.Value == 4))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 120, 255), 3);
-            }
-            //++++++++++++Right++++++++++++++++++++
-            foreach (var item in rightLine.Where(a => a.Value == 0))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
-            }
-            foreach (var item in rightLine.Where(a => a.Value == 1))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 255), 3);
-            }
-            foreach (var item in rightLine.Where(a => a.Value == 2))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 5), 3);
-            }
-            foreach (var item in rightLine.Where(a => a.Value == 3))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 0, 0), 3);
-            }
-            foreach (var item in rightLine.Where(a => a.Value == 4))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 120, 255), 3);
-            }
-            //++++++++++++Left++++++++++++++++++++
-            foreach (var item in leftLine.Where(a => a.Value == 0))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
-            }
-            foreach (var item in leftLine.Where(a => a.Value == 1))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
-            }
-            foreach (var item in leftLine.Where(a => a.Value == 2))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
-            }
-            foreach (var item in leftLine.Where(a => a.Value == 3))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
-            }
-            foreach (var item in leftLine.Where(a => a.Value == 4))
-            {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
-            }
+            ////++++++++++++up++++++++++++++++++++
+            //foreach (var item in CenterAndSlope.DividedContours.Where(a => a.Value == 0).ToDictionary(a => a.Key, a => a.Value))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
+            //    //CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
+            //}
+            //foreach (var item in upLine.Where(a => a.Value == 1))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 255), 3);
+            //}
+            //foreach (var item in upLine.Where(a => a.Value == 2))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 5), 3);
+            //}
+            //foreach (var item in upLine.Where(a => a.Value == 3))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 0, 0), 3);
+            //}
+            //foreach (var item in upLine.Where(a => a.Value == 4))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 120, 255), 3);
+            //}
+            ////++++++++++++Right++++++++++++++++++++
+            //foreach (var item in rightLine.Where(a => a.Value == 0))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
+            //}
+            //foreach (var item in rightLine.Where(a => a.Value == 1))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 255), 3);
+            //}
+            //foreach (var item in rightLine.Where(a => a.Value == 2))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 5), 3);
+            //}
+            //foreach (var item in rightLine.Where(a => a.Value == 3))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 0, 0), 3);
+            //}
+            //foreach (var item in rightLine.Where(a => a.Value == 4))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 120, 255), 3);
+            //}
+            ////++++++++++++Left++++++++++++++++++++
+            //foreach (var item in leftLine.Where(a => a.Value == 0))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
+            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
+            //}
+            //foreach (var item in leftLine.Where(a => a.Value == 1))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
+            //}
+            //foreach (var item in leftLine.Where(a => a.Value == 2))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
+            //}
+            //foreach (var item in leftLine.Where(a => a.Value == 3))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
+            //}
+            //foreach (var item in leftLine.Where(a => a.Value == 4))
+            //{
+            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
+            //}
 
             #endregion
             for (int i = 0; i < imgInfo.MotorShift.Length; i++)
             { 
                 textBox1.Text  += "#【" + i + "】" + imgInfo.MotorShift[i].ToString() + "\r\n";
             }
+            //x=0
+            int y0 = (int)(imgInfo.CenterOfImg.Y - Math.Tan(imgInfo.RotatedAngle / 180f * Math.PI) * imgInfo.CenterOfImg.X);
+            int y5472= (int)(imgInfo.CenterOfImg.Y + Math.Tan(imgInfo.RotatedAngle / 180f * Math.PI) * (5472-imgInfo.CenterOfImg.X));
+            CvInvoke.Line(myImg, new Point(0, y0), new Point(5472, y5472), new MCvScalar(23, 25, 200), 10);
+            //y=0
+            int x0 = (int)(imgInfo.CenterOfImg.X+ Math.Tan(imgInfo.RotatedAngle / 180f * Math.PI)*imgInfo.CenterOfImg.Y);
+            int x3648 = (int)(imgInfo.CenterOfImg.X- Math.Tan(imgInfo.RotatedAngle / 180f * Math.PI) * (3648-imgInfo.CenterOfImg.Y));
+            CvInvoke.Line(myImg, new Point(x0, 0), new Point(x3648, 3648), new MCvScalar(223, 25, 20), 10);
+
+
+            //x=0
+            int y0rect = (int)(imgInfo.RectCenterOfImg.Y - Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * imgInfo.RectCenterOfImg.X);
+            int y5472rect = (int)(imgInfo.RectCenterOfImg.Y + Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * (5472 - imgInfo.RectCenterOfImg.X));
+            CvInvoke.Line(myImg, new Point(0, y0rect), new Point(5472, y5472rect), new MCvScalar(223, 25, 20), 2);
+            //y=0
+            int x0rect = (int)(imgInfo.RectCenterOfImg.X + Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * imgInfo.RectCenterOfImg.Y);
+            int x3648rect = (int)(imgInfo.RectCenterOfImg.X - Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * (3648 - imgInfo.RectCenterOfImg.Y));
+            CvInvoke.Line(myImg, new Point(x0rect, 0), new Point(x3648rect, 3648), new MCvScalar(23, 25, 200), 10);
+
+            FlashLogger.Info(imgInfo.CenterOfImg.ToString());
+            FlashLogger.Info(imgInfo.RectCenterOfImg.ToString());
+            FlashLogger.Info(imgInfo.RotatedAngle.ToString());
+            FlashLogger.Info(imgInfo.RectRotatedAngle.ToString());
             FlashLogger.Info(textBox1.Text);
             pictureBox1.Image = myImg.ToBitmap();
         }

@@ -32,16 +32,28 @@ namespace CalMotorsShit
         public Image<Gray, byte> BinaryImage{get;set;}//记录二值化图像
         public Dictionary<Dictionary<Point, int>, string> segmentLines;
         public Dictionary<Point, int> DividedContours;
+        public struct LineParamters
+        {
+            public double K;
+            public double B;
+            public LineParamters(double a, double b)
+            {
+                K = a;
+                B = b;
+            }
+        }
         public struct ImageInfo
         {
             public double RotatedAngle { get; set; }//记录旋转角
+            public double RectRotatedAngle { get; set; }//记录旋转角
             public PointF CenterOfRobot { get; set; }//记录机器人法兰中心点坐标
             public PointF CenterOfImg { get; set; }//记录图像中心点坐标
+            public PointF RectCenterOfImg { get; set; }//记录图像中心点坐标
             public PointF[] ImageCorner { get; set; }//记录图像角点信息
             public double AxisLong { get; set; }//记录长轴
             public double AxisShort { get; set; }//记录短轴
             public double[] MotorShift { get; set; }//记录--24--距离
-            
+            public Dictionary<double, double> fourLineParam;
         }
         //public Dictionary<Point, int> dividedCoutour;//记录四条边的点集
         //public Dictionary<Dictionary<Point, int>,string> segmentLine;//记录单边分5组--临时用
@@ -320,15 +332,16 @@ namespace CalMotorsShit
                 var minRect = CvInvoke.MinAreaRect(productContour); //最小外接矩形
                 PointF[] pt = CvInvoke.BoxPoints(minRect);//最小外接矩形四个角点 
                 PointF po = minRect.Center;//最小外接矩形中心
-                double RotatedAngle = Math.Abs(minRect.Angle) > 45 ? minRect.Angle + 90 : minRect.Angle;
+                double rectRotatedAngle = Math.Abs(minRect.Angle) > 45 ? minRect.Angle + 90 : minRect.Angle;
                 //长轴,短轴,倾角计算:
                 //AxisLong =  Math.Sqrt(Math.Pow(pt[1].X - pt[0].X, 2) + Math.Pow(pt[1].Y - pt[0].Y, 2));
                 double AxisLong = minRect.Size.Width > minRect.Size.Height ? minRect.Size.Width : minRect.Size.Height;
                 //AxisShort =  Math.Sqrt(Math.Pow(pt[2].X - pt[1].X, 2) + Math.Pow(pt[2].Y - pt[1].Y, 2));
                 double AxisShort = minRect.Size.Height <= minRect.Size.Width ? minRect.Size.Height : minRect.Size.Width;
                 imageInfo.ImageCorner = pt;
-                imageInfo.CenterOfImg = po;
-                imageInfo.RotatedAngle = RotatedAngle;
+                imageInfo.RectCenterOfImg = po;
+                 imageInfo.CenterOfImg = centriod;
+                imageInfo.RectRotatedAngle = rectRotatedAngle;
                 imageInfo.AxisLong = AxisLong;
                 imageInfo.AxisShort = AxisShort;
                 #region 计算电气抓位移
@@ -379,7 +392,35 @@ namespace CalMotorsShit
                         }
                     }
                 }
+                /*计算拟合直线斜率*/
+                LineParamters leftLineParamter = LinearRegression(dividedCoutour.Where(a => a.Value == 0).Select(a => a.Key).ToArray());
+                LineParamters upLineParamter = LinearRegression(dividedCoutour.Where(a => a.Value == 1).Select(a => a.Key).ToArray());
+                LineParamters rightLineParamter = LinearRegression(dividedCoutour.Where(a => a.Value == 2).Select(a => a.Key).ToArray());
+                LineParamters bottomLineParamter = LinearRegression(dividedCoutour.Where(a => a.Value == 3).Select(a => a.Key).ToArray());
+                Dictionary<double, double> fourLineParmter = new Dictionary<double, double>();
+                fourLineParmter.Add(leftLineParamter.K, leftLineParamter.B);
+                fourLineParmter.Add(upLineParamter.K, upLineParamter.B);
+                fourLineParmter.Add(rightLineParamter.K, rightLineParamter.B);
+                fourLineParmter.Add(bottomLineParamter.K, bottomLineParamter.B);
+                imageInfo.fourLineParam = fourLineParmter;
+
+                double leftAngle = Math.Atan(leftLineParamter.K) * 180f / Math.PI;
+                double upAngle = Math.Atan(upLineParamter.K) * 180f / Math.PI;
+                double rightAngle = Math.Atan(rightLineParamter.K) * 180f / Math.PI;
+                double bottomAngle = Math.Atan(bottomLineParamter.K) * 180f / Math.PI;
+                double RotatedAngle;
+                if (Math.Abs(Math.Abs(leftAngle - upAngle) - 90f) <= Math.Abs(Math.Abs(upAngle - rightAngle) - 90f))
+                {
+                    RotatedAngle = Math.Abs(leftAngle) < Math.Abs(upAngle) ? leftAngle : upAngle;
+                }
+                else
+                {
+                    RotatedAngle = Math.Abs(rightAngle) < Math.Abs(upAngle) ? rightAngle : upAngle;
+                }
+                imageInfo.RotatedAngle = RotatedAngle;
+                /*计算拟合直线斜率*/
                 DividedContours = dividedCoutour;
+
                 //验证一段分5组：
                 List<double> up = new List<double>();
                 List<double> bottom = new List<double>();
@@ -777,6 +818,59 @@ namespace CalMotorsShit
             double dis = 0;
             dis = Math.Abs(A * p.X + B * p.Y + C) / (Math.Sqrt(A * A + B * B));
             return dis;
+        }
+        /// <summary>
+        /// 对一组点通过最小二乘法进行线性回归
+        /// </summary>
+        /// <param name="parray"></param>
+        private LineParamters LinearRegression(Point[] parray)
+        {
+            //点数不能小于2
+            if (parray.Length < 2)
+            {
+                Console.WriteLine("点的数量小于2，无法进行线性回归");
+                //return new List<double>() {-999,-999,-999,-999
+                //};
+            }
+            //求出横纵坐标的平均值
+            double averagex = 0, averagey = 0;
+            foreach (Point p in parray)
+            {
+                averagex += p.X;
+                averagey += p.Y;
+            }
+            averagex /= parray.Length;
+            averagey /= parray.Length;
+            //经验回归系数的分子与分母
+            double numerator = 0;
+            double denominator = 0;
+            foreach (Point p in parray)
+            {
+                numerator += (p.X - averagex) * (p.Y - averagey);
+                denominator += (p.X - averagex) * (p.X - averagex);
+            }
+            //回归系数b（Regression Coefficient）==斜率
+            double RCB = numerator / denominator;
+            //回归系数a ===截距
+            double RCA = averagey - RCB * averagex;
+            //Console.WriteLine("回归系数A： " + RCA.ToString("0.0000"));
+            //Console.WriteLine("回归系数B： " + RCB.ToString("0.0000"));
+            //Console.WriteLine(string.Format("方程为： y = {0} + {1} * x",RCA.ToString("0.0000"), RCB.ToString("0.0000")));
+            //剩余平方和与回归平方和
+            double residualSS = 0;  //（Residual Sum of Squares）
+            double regressionSS = 0; //（Regression Sum of Squares）
+            foreach (Point p in parray)
+            {
+                residualSS +=
+                  (p.Y - RCA - RCB * p.X) *
+                  (p.Y - RCA - RCB * p.X);
+                regressionSS +=
+                  (RCA + RCB * p.X - averagey) *
+                  (RCA + RCB * p.X - averagey);
+            }
+            //Console.WriteLine("剩余平方和： " + residualSS.ToString("0.0000"));
+            //Console.WriteLine("回归平方和： " + regressionSS.ToString("0.0000"));
+            return new LineParamters(RCB, RCA);
         }
     }
 }

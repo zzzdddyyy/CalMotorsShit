@@ -3,9 +3,11 @@
 ///Authentication：ZDY
 ///内容：此类包含了相机畸变校正、图像处理、角点识别、旋转角度获取、
 ///根据图像边长像素数量自适应计算24电机位移量
+///两个相机根据产品高度分级标定2019/05/27/21/40
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -28,6 +30,8 @@ namespace CalMotorsShit
         //public double AxisLong { get; set; }//记录长轴
         //public double AxisShort { get; set; }//记录短轴
         public Image<Gray, byte> BinaryImage{get;set;}//记录二值化图像
+        public Dictionary<Dictionary<Point, int>, string> segmentLines;
+        public Dictionary<Point, int> DividedContours;
         public struct ImageInfo
         {
             public double RotatedAngle { get; set; }//记录旋转角
@@ -37,6 +41,7 @@ namespace CalMotorsShit
             public double AxisLong { get; set; }//记录长轴
             public double AxisShort { get; set; }//记录短轴
             public double[] MotorShift { get; set; }//记录--24--距离
+            
         }
         //public Dictionary<Point, int> dividedCoutour;//记录四条边的点集
         //public Dictionary<Dictionary<Point, int>,string> segmentLine;//记录单边分5组--临时用
@@ -66,30 +71,30 @@ namespace CalMotorsShit
         private void GetRightCamParams(int spongeH)
         {
             //填充相机矩阵
-            cameraMatrix[0, 0] = 4946.18163894192;
-            cameraMatrix[0, 1] = -0.624726287412256;
-            cameraMatrix[0, 2] = 2744.28781898738;
+            cameraMatrix[0, 0] = 5261.57509979704;
+            cameraMatrix[0, 1] = -1.02085794953928;
+            cameraMatrix[0, 2] = 2742.89487632804;
             cameraMatrix[1, 0] = 0;
-            cameraMatrix[1, 1] = 4945.59080271046;
-            cameraMatrix[1, 2] = 1877.58021306542;
+            cameraMatrix[1, 1] = 5262.80915495687;
+            cameraMatrix[1, 2] = 1853.85855402103;
             cameraMatrix[2, 0] = 0;
             cameraMatrix[2, 1] = 0;
             cameraMatrix[2, 2] = 1;
             //填充畸变矩阵
-            distCoeffs[0, 0] = -0.0710236695402012;//K1
-            distCoeffs[1, 0] = 0.128020024828545;//K2
+            distCoeffs[0, 0] = -0.0867835744020699;//K1
+            distCoeffs[1, 0] = 0.151085921328026;//K2
             distCoeffs[2, 0] = 0;//P1
             distCoeffs[3, 0] = 0;//P2
             distCoeffs[4, 0] = 0;//K3
             //填充坐标变换矩阵
             if (spongeH <= 15)
             {
-                rightCameraTrans[0, 0] = -5.04228004e-03;
-                rightCameraTrans[0, 1] = 6.97035198e-01;
-                rightCameraTrans[0, 2] = -1.74467751e+03;
-                rightCameraTrans[0, 3] = 6.95646602e-01;
-                rightCameraTrans[0, 4] = 4.65284138e-03;
-                rightCameraTrans[0, 5] = 6.91376326e+02;
+                rightCameraTrans[0, 0] = -5.1727435700E-03;
+                rightCameraTrans[0, 1] = 6.9657883800E-01;
+                rightCameraTrans[0, 2] = -1.7437241700E+03;
+                rightCameraTrans[0, 3] = 6.9520151800E-01;
+                rightCameraTrans[0, 4] = 4.7828389800E-03;
+                rightCameraTrans[0, 5] = 6.9247452900E+02;
             }
             else if (spongeH > 15 && spongeH <= 55)
             {
@@ -102,30 +107,30 @@ namespace CalMotorsShit
             }
             else if (spongeH > 55 && spongeH <= 75)
             {
-                rightCameraTrans[0, 0] = -4.37142654e-03;
-                rightCameraTrans[0, 1] = 6.85270616e-01;
-                rightCameraTrans[0, 2] = -1.72347553e+03;
-                rightCameraTrans[0, 3] = 6.83202904e-01;
-                rightCameraTrans[0, 4] = 3.90862861e-03;
-                rightCameraTrans[0, 5] = 7.25361627e+02;
+                rightCameraTrans[0, 0] = -3.9348807300E-03;
+                rightCameraTrans[0, 1] = 6.8447924000E-01;
+                rightCameraTrans[0, 2] = -1.7226650000E+03;
+                rightCameraTrans[0, 3] = 6.8230651500E-01;
+                rightCameraTrans[0, 4] = 3.4765732600E-03;
+                rightCameraTrans[0, 5] = 7.2796562000E+02;
             }
             else if (spongeH > 75 && spongeH <= 95)
             {
-                rightCameraTrans[0, 0] = -4.53470345e-03;
-                rightCameraTrans[0, 1] = 6.81258505e-01;
-                rightCameraTrans[0, 2] = -1.71636378e+03;
-                rightCameraTrans[0, 3] = 6.79263048e-01;
-                rightCameraTrans[0, 4] = 3.83386933e-03;
-                rightCameraTrans[0, 5] = 7.36451842e+02;
+                rightCameraTrans[0, 0] = -4.5755332100E-03;
+                rightCameraTrans[0, 1] = 6.8035716900E-01;
+                rightCameraTrans[0, 2] = -1.7145515800E+03;
+                rightCameraTrans[0, 3] = 6.7831290100E-01;
+                rightCameraTrans[0, 4] = 3.8769435600E-03;
+                rightCameraTrans[0, 5] = 7.3886145900E+02;
             }
             else if (spongeH > 95)
             {
-                rightCameraTrans[0, 0] = -4.81150536e-03;
-                rightCameraTrans[0, 1] = 6.79535937e-01;
-                rightCameraTrans[0, 2] = -1.71339340e+03;
-                rightCameraTrans[0, 3] = 6.77619641e-01;
-                rightCameraTrans[0, 4] = 3.97985425e-03;
-                rightCameraTrans[0, 5] = 7.40662060e+02;
+                rightCameraTrans[0, 0] = -4.8271264000E-03;
+                rightCameraTrans[0, 1] = 6.7879591000E-01;
+                rightCameraTrans[0, 2] = -1.7117868300E+03;
+                rightCameraTrans[0, 3] = 6.7664272000E-01;
+                rightCameraTrans[0, 4] = 4.0075188000E-03;
+                rightCameraTrans[0, 5] = 7.4317234100E+02;
             }
         }
 
@@ -135,58 +140,58 @@ namespace CalMotorsShit
         private void GetFrontCamParams(int spongeH)
         {
             //填充相机矩阵
-            cameraMatrix[0, 0] = 4932.50425753357;
-            cameraMatrix[0, 1] = -0.132857117137422;
-            cameraMatrix[0, 2] = 2733.57870537282;
+            cameraMatrix[0, 0] = 4906.60297008225;
+            cameraMatrix[0, 1] = -0.392896710343784;
+            cameraMatrix[0, 2] = 2743.45650259450;
             cameraMatrix[1, 0] = 0;
-            cameraMatrix[1, 1] = 4932.08299994076;
-            cameraMatrix[1, 2] = 1816.99165090490;
+            cameraMatrix[1, 1] = 4906.39929434443;
+            cameraMatrix[1, 2] = 1817.41481236106;
             cameraMatrix[2, 0] = 0;
             cameraMatrix[2, 1] = 0;
             cameraMatrix[2, 2] = 1;
-            //填充畸变矩阵,先径向再切向
-            distCoeffs[0, 0] = -0.06603195967528847;//K1
-            distCoeffs[1, 0] = 0.116813172417637;//K2
+            //填充畸变矩阵
+            distCoeffs[0, 0] = -0.0686927479104206;//K1
+            distCoeffs[1, 0] = 0.110567579512073;//K2
             distCoeffs[2, 0] = 0;//P1
             distCoeffs[3, 0] = 0;//P2
             distCoeffs[4, 0] = 0;//K3
             //填充坐标变换矩阵
             if (spongeH <= 60)
             {
-                frontCameraTrans[0, 0] = 6.98343875e-01;
-                frontCameraTrans[0, 1] = 4.35391944e-04;
-                frontCameraTrans[0, 2] = 5.83221141e+02;
-                frontCameraTrans[0, 3] = 4.02996368e-04;
-                frontCameraTrans[0, 4] = -6.98756329e-01;
-                frontCameraTrans[0, 5] = 1.13790727e+03;
+                frontCameraTrans[0, 0] = 6.9764619200E-01;
+                frontCameraTrans[0, 1] = 5.4820349500E-04;
+                frontCameraTrans[0, 2] = 5.8503000400E+02;
+                frontCameraTrans[0, 3] = 4.2393205200E-04;
+                frontCameraTrans[0, 4] = -6.9829040000E-01;
+                frontCameraTrans[0, 5] = 1.1367597100E+03;
 
             }
             else if (spongeH <= 175 && spongeH > 60)
             {
-                frontCameraTrans[0, 0] = 6.73722735e-01;
-                frontCameraTrans[0, 1] = 5.89894437e-04;
-                frontCameraTrans[0, 2] = 6.51819702e+02;
-                frontCameraTrans[0, 3] = 1.10845668e-03;
-                frontCameraTrans[0, 4] = -6.74728521e-01;
-                frontCameraTrans[0, 5] = 1.09239819e+03;
+                frontCameraTrans[0, 0] = 6.7322673100E-01;
+                frontCameraTrans[0, 1] = 6.2748228300E-04;
+                frontCameraTrans[0, 2] = 6.5324825500E+02;
+                frontCameraTrans[0, 3] = 1.1452081400E-03;
+                frontCameraTrans[0, 4] = -6.7428838600E-01;
+                frontCameraTrans[0, 5] = 1.0915775100E+03;
             }
             else if (spongeH <= 225 && spongeH > 175)
             {
-                frontCameraTrans[0, 0] = 6.66144136e-01;
-                frontCameraTrans[0, 1] = -3.51634805e-04;
-                frontCameraTrans[0, 2] = 6.73332341e+02;
-                frontCameraTrans[0, 3] = 3.98092828e-04;
-                frontCameraTrans[0, 4] = -6.67180844e-01;
-                frontCameraTrans[0, 5] = 1.08068911e+03;
+                frontCameraTrans[0, 0] = 6.6580670500E-01;
+                frontCameraTrans[0, 1] = -4.4495708400E-04;
+                frontCameraTrans[0, 2] = 6.7430042200E+02;
+                frontCameraTrans[0, 3] = 2.8243639200E-04;
+                frontCameraTrans[0, 4] = -6.6678345300E-01;
+                frontCameraTrans[0, 5] = 1.0802410200E+03;
             }
             else if (spongeH > 225)
             {
-                frontCameraTrans[0, 0] = 6.49604925e-01;
-                frontCameraTrans[0, 1] = -3.21692944e-04;
-                frontCameraTrans[0, 2] = 7.18122346e+02;
-                frontCameraTrans[0, 3] = 3.96075968e-04;
-                frontCameraTrans[0, 4] = -6.50491543e-01;
-                frontCameraTrans[0, 5] = 1.05098143e+03;
+                frontCameraTrans[0, 0] = 6.4926583600E-01;
+                frontCameraTrans[0, 1] = -1.5135621300E-04;
+                frontCameraTrans[0, 2] = 7.1905940700E+02;
+                frontCameraTrans[0, 3] = 5.5071707100E-04;
+                frontCameraTrans[0, 4] = -6.5007095800E-01;
+                frontCameraTrans[0, 5] = 1.0499019800E+03;
             }
         }
         /// <summary>
@@ -300,6 +305,16 @@ namespace CalMotorsShit
             List<VectorOfPoint> imageContours = GetContours(bitmap, cameraID, spongeH);
             VectorOfPoint productContour = imageContours.Max();
             Point[] pst = productContour.ToArray();//获取轮廓上所有的点集
+            //计算质心
+            float vx = 0;
+            float vy = 0;
+            foreach (var item in pst)
+            {
+                vx += item.X;
+                vy += item.Y;
+            }
+            Point centriod = new Point((int)vx / pst.Length, (int)vy / pst.Length);
+            Trace.WriteLine("当前轮廓质心：VX= " + (vx / pst.Length).ToString() + "；VY=" + (vy / pst.Length).ToString());
             if (productContour!=null)
             {
                 var minRect = CvInvoke.MinAreaRect(productContour); //最小外接矩形
@@ -327,7 +342,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 8 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 8 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 4 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 4)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 5 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 5 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 100 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 100)
                             {
                                 dividedCoutour[item] = 0;
                             }
@@ -337,7 +352,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) && item.X >= (p1.X > p2.X ? p2.X : p1.X) && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 40 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 10)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X)-100 && item.X >= (p1.X > p2.X ? p2.X : p1.X)+100 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 5 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 5)
                             {
                                 dividedCoutour[item] = 1;
                             }
@@ -347,7 +362,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 8 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 8 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 4 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 4)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 5 && item.X >= (p1.X > p2.X ? p2.X : p1.X) -5 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 100 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 100)
                             {
                                 dividedCoutour[item] = 2;
                             }
@@ -357,19 +372,20 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) - 4 && item.X >= (p1.X > p2.X ? p2.X : p1.X) + 4 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 10 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 10)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) - 100 && item.X >= (p1.X > p2.X ? p2.X : p1.X) + 100 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 5 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 5)
                             {
                                 dividedCoutour[item] = 3;
                             }
                         }
                     }
                 }
+                DividedContours = dividedCoutour;
                 //验证一段分5组：
                 List<double> up = new List<double>();
                 List<double> bottom = new List<double>();
                 List<double> left = new List<double>();
                 List<double> right = new List<double>();
-                left = GetFiveDistanceOnLine(RotatedAngle, new Point((int)po.X, (int)po.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 0).ToDictionary(a => a.Key, a => a.Value));
+                left = GetFiveDistanceOnLine(RotatedAngle, new Point((int)centriod.X, (int)centriod.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 0).ToDictionary(a => a.Key, a => a.Value));
                 if (cameraID == 0)//R
                 {
                     for (int i = 0; i < left.Count; i++)
@@ -380,7 +396,7 @@ namespace CalMotorsShit
                         }
                     }
                 }
-                up = GetFiveDistanceOnLine(RotatedAngle, new Point((int)po.X, (int)po.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 1).ToDictionary(a => a.Key, a => a.Value));
+                up = GetFiveDistanceOnLine(RotatedAngle, new Point((int)centriod.X, (int)centriod.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 1).ToDictionary(a => a.Key, a => a.Value));
                 if (cameraID == 1)//F
                 {
                     for (int i = 0; i < up.Count; i++)
@@ -391,7 +407,7 @@ namespace CalMotorsShit
                         }
                     }
                 }
-                right = GetFiveDistanceOnLine(RotatedAngle, new Point((int)po.X, (int)po.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 2).ToDictionary(a => a.Key, a => a.Value));
+                right = GetFiveDistanceOnLine(RotatedAngle, new Point((int)centriod.X, (int)centriod.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 2).ToDictionary(a => a.Key, a => a.Value));
                 if (cameraID == 0)//R
                 {
                     for (int i = 0; i < right.Count; i++)
@@ -402,7 +418,7 @@ namespace CalMotorsShit
                         }
                     }
                 }
-                bottom = GetFiveDistanceOnLine(RotatedAngle, new Point((int)po.X, (int)po.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 3).ToDictionary(a => a.Key, a => a.Value));
+                bottom = GetFiveDistanceOnLine(RotatedAngle, new Point((int)centriod.X, (int)centriod.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 3).ToDictionary(a => a.Key, a => a.Value));
                 if (cameraID == 1)//F
                 {
                     for (int i = 0; i < bottom.Count; i++)
@@ -735,7 +751,6 @@ namespace CalMotorsShit
                             }
                         }
                     }
-
                     segmentLine[segInnerLine] = "Bottom";
                 }
                 //TODO===计算List<double>存储5个线段距离中线的距离
@@ -745,6 +760,7 @@ namespace CalMotorsShit
                 fiveD.Add(segInnerLine.Where(a => a.Value == 3).Select(a => a.Key).Average(a => { return GetPoint2LineDistance(a, A_, B_, C_); }));
                 fiveD.Add(segInnerLine.Where(a => a.Value == 4).Select(a => a.Key).Average(a => { return GetPoint2LineDistance(a, A_, B_, C_); }));
             }
+            segmentLines = segmentLine;
             return fiveD;
         }
 

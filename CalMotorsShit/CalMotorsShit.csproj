@@ -74,6 +74,9 @@
     <Reference Include="Emgu.CV.World">
       <HintPath>F:\Emgu CV\EmguCV\emgucv-windesktop 3.4.1.2976\bin\Emgu.CV.World.dll</HintPath>
     </Reference>
+    <Reference Include="log4net">
+      <HintPath>H:\BataRobot\软件算法\Log4Net\log4net-2.0.8-bin-newkey\log4net-2.0.8\bin\net\4.5\release\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -89,6 +92,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FlashLog.cs" />
+    <Compile Include="FlashLogLevel.cs" />
+    <Compile Include="FlashLogMessage.cs" />
     <Compile Include="KHImageServices.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
@@ -120,6 +126,10 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="log4net.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

@@ -59,7 +59,6 @@ F:\GitHub\CalMotorsShit\CalMotorsShit\bin\x86\Debug\Emgu.CV.World.xml
 F:\GitHub\CalMotorsShit\CalMotorsShit\bin\x86\Debug\ZedGraph.xml
 F:\GitHub\CalMotorsShit\CalMotorsShit\bin\x86\Debug\zh-CN\Emgu.CV.UI.resources.dll
 F:\GitHub\CalMotorsShit\CalMotorsShit\bin\x86\Debug\zh-CN\ZedGraph.resources.dll
-F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.csprojAssemblyReference.cache
 F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.Form1.resources
 F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.frmROI.resources
 F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.Properties.Resources.resources
@@ -68,3 +67,7 @@ F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.csproj.CoreCom
 F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.csproj.CopyComplete
 F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.exe
 F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.pdb
+F:\GitHub\CalMotorsShit\CalMotorsShit\bin\x86\Debug\log4net.dll
+F:\GitHub\CalMotorsShit\CalMotorsShit\bin\x86\Debug\log4net.pdb
+F:\GitHub\CalMotorsShit\CalMotorsShit\bin\x86\Debug\log4net.xml
+F:\GitHub\CalMotorsShit\CalMotorsShit\obj\x86\Debug\CalMotorsShit.csprojAssemblyReference.cache

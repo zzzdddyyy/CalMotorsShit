@@ -37,10 +37,12 @@ namespace CalMotorsShit
             else if (rdbRight.Checked)
             {
                 cameraID = 0;//右侧相机
+                FlashLogger.Info("当前图像时右侧-高位相机");
             }
             else
             {
                 cameraID = 1;//前方向机
+                FlashLogger.Info("当前图像时前侧-低位相机");
             }
             Image<Bgr, byte> myImg = null;
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -53,7 +55,7 @@ namespace CalMotorsShit
                 return;
             }
 
-            imgInfo = CenterAndSlope.GetProductParamters(myImg.Bitmap, cameraID,175);
+            imgInfo = CenterAndSlope.GetProductParamters(myImg.Bitmap, cameraID,165);
             foreach (var item in imgInfo.ImageCorner)
             {
                 CvInvoke.Circle(myImg, new Point((int)item.X, (int)item.Y),10, new MCvScalar(0, 255, 33),10);
@@ -64,25 +66,37 @@ namespace CalMotorsShit
             Dictionary<Point, int> bottomLine = new Dictionary<Point, int>();
             Dictionary<Point, int> rightLine = new Dictionary<Point, int>();
             Dictionary<Point, int> leftLine = new Dictionary<Point, int>();
-            foreach (var item in CenterAndSlope.segmentLines)
+            //foreach (var item in CenterAndSlope.segmentLines)
+            //{
+            //    if (item.Values.Where(a=>a=="Up"))
+            //    {
+            //upLine = CenterAndSlope.segmentUpLines.Keys.ToArray()[0];
+            //    }
+            //    else if (item.Value == "Bottom")
+            //    {
+            bottomLine = CenterAndSlope.segmentBottomLines.Keys.ToArray()[0];
+            foreach (var item in bottomLine)
             {
-                if (item.Value == "Up")
-                {
-                    upLine = item.Key;
-                }
-                else if (item.Value == "Bottom")
-                {
-                    bottomLine = item.Key;
-                }
-                else if (item.Value == "Right")
-                {
-                    rightLine = item.Key;
-                }
-                else
-                {
-                    leftLine = item.Key;
-                }
+                File.AppendAllText("bottomLine.txt", "X = " + item.Key.X.ToString() + "\tY = " + item.Key.Y.ToString() + "\tID = " + item.Value.ToString() + "\r\n");
             }
+            //    }
+            //    else if (item.Value == "Right")
+            //    {
+            //rightLine = CenterAndSlope.segmentRightLines.Keys.ToArray()[0];
+            //    }
+            //    else
+            //    {
+
+
+            //leftLine = CenterAndSlope.segmentLeftLines.Keys.ToArray()[0];
+            //foreach (var item in leftLine)
+            //{
+            //    File.AppendAllText("leftLine.txt", "X = " + item.Key.X.ToString() + "Y = " + item.Key.Y.ToString() + "ID = " + item.Value.ToString() + "\r\n");
+            //}
+
+            //    }
+            //}
+
             FlashLogger.Info("Up-Num =>"+upLine.Count.ToString());
             FlashLogger.Info("Bottom-Num =>"+bottomLine.Count.ToString());
             FlashLogger.Info("Right-Num =>"+rightLine.Count.ToString());
@@ -111,8 +125,8 @@ namespace CalMotorsShit
             }
             foreach (var item in bottomLine.Where(a => a.Value == 4))
             {
-                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
-                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 120, 255), 3);
+                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 10, 255), 3);//Blue
+                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 10, 255), 3);
             }
 
             ////++++++++++++up++++++++++++++++++++
@@ -167,28 +181,30 @@ namespace CalMotorsShit
             //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
             //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 120, 255), 3);
             //}
-            ////++++++++++++Left++++++++++++++++++++
-            //foreach (var item in leftLine.Where(a => a.Value == 0))
-            //{
-            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
-            //    CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
-            //}
-            //foreach (var item in leftLine.Where(a => a.Value == 1))
-            //{
-            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
-            //}
-            //foreach (var item in leftLine.Where(a => a.Value == 2))
-            //{
-            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
-            //}
-            //foreach (var item in leftLine.Where(a => a.Value == 3))
-            //{
-            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
-            //}
-            //foreach (var item in leftLine.Where(a => a.Value == 4))
-            //{
-            //    CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
-            //}
+            //++++++++++++Left++++++++++++++++++++
+            foreach (var item in leftLine.Where(a => a.Value == 0))
+            {
+                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
+                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
+            }
+            foreach (var item in leftLine.Where(a => a.Value == 1))
+            {
+                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
+            }
+            foreach (var item in leftLine.Where(a => a.Value == 2))
+            {
+                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
+            }
+            foreach (var item in leftLine.Where(a => a.Value == 3))
+            {
+                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
+                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 0, 0), 3);
+            }
+            foreach (var item in leftLine.Where(a => a.Value == 4))
+            {
+                CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 120, 255), 3);//Blue
+                CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255,120,255), 3);
+            }
 
             #endregion
             for (int i = 0; i < imgInfo.MotorShift.Length; i++)
@@ -214,12 +230,12 @@ namespace CalMotorsShit
             int x3648rect = (int)(imgInfo.RectCenterOfImg.X - Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * (3648 - imgInfo.RectCenterOfImg.Y));
             CvInvoke.Line(myImg, new Point(x0rect, 0), new Point(x3648rect, 3648), new MCvScalar(23, 25, 200), 10);
 
-            FlashLogger.Info(imgInfo.CenterOfImg.ToString());
-            FlashLogger.Info(imgInfo.RectCenterOfImg.ToString());
-            FlashLogger.Info(imgInfo.RotatedAngle.ToString());
-            FlashLogger.Info(imgInfo.RectRotatedAngle.ToString());
-            FlashLogger.Info(textBox1.Text);
+            FlashLogger.Info("X-Y均值计算质心：" + imgInfo.CenterOfImg.ToString() + "\r\n外接矩形中心：" + imgInfo.RectCenterOfImg.ToString() + "\r\nHu矩计算质心：" + imgInfo.GravityCenterOfImg.ToString() + "\r\n"); ;
+
+            FlashLogger.Info("最小二乘法拟合直线斜率："+imgInfo.RotatedAngle.ToString()+"\r\n外接矩形斜率："+ imgInfo.RectRotatedAngle.ToString()+"\r\n");
+            FlashLogger.Info("24电机位移\r\n"+textBox1.Text);
             pictureBox1.Image = myImg.ToBitmap();
+            pictureBox1.Update();
         }
         /// <summary>
         /// 获取ROI

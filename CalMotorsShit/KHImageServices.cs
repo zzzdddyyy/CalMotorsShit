@@ -30,7 +30,10 @@ namespace CalMotorsShit
         //public double AxisLong { get; set; }//记录长轴
         //public double AxisShort { get; set; }//记录短轴
         public Image<Gray, byte> BinaryImage{get;set;}//记录二值化图像
-        public Dictionary<Dictionary<Point, int>, string> segmentLines;
+        public Dictionary<Dictionary<Point, int>, string> segmentLeftLines;
+        public Dictionary<Dictionary<Point, int>, string> segmentUpLines;
+        public Dictionary<Dictionary<Point, int>, string> segmentRightLines;
+        public Dictionary<Dictionary<Point, int>, string> segmentBottomLines;
         public Dictionary<Point, int> DividedContours;
         public struct LineParamters
         {
@@ -49,6 +52,7 @@ namespace CalMotorsShit
             public PointF CenterOfRobot { get; set; }//记录机器人法兰中心点坐标
             public PointF CenterOfImg { get; set; }//记录图像中心点坐标
             public PointF RectCenterOfImg { get; set; }//记录图像中心点坐标
+            public PointF GravityCenterOfImg { get; set; }//记录图像中心点坐标
             public PointF[] ImageCorner { get; set; }//记录图像角点信息
             public double AxisLong { get; set; }//记录长轴
             public double AxisShort { get; set; }//记录短轴
@@ -83,18 +87,18 @@ namespace CalMotorsShit
         private void GetRightCamParams(int spongeH)
         {
             //填充相机矩阵
-            cameraMatrix[0, 0] = 5261.57509979704;
-            cameraMatrix[0, 1] = -1.02085794953928;
-            cameraMatrix[0, 2] = 2742.89487632804;
+            cameraMatrix[0, 0] = 5012.83560015632;
+            cameraMatrix[0, 1] = 0;
+            cameraMatrix[0, 2] = 2740.50846618875;
             cameraMatrix[1, 0] = 0;
-            cameraMatrix[1, 1] = 5262.80915495687;
-            cameraMatrix[1, 2] = 1853.85855402103;
+            cameraMatrix[1, 1] = 5013.97237158398;
+            cameraMatrix[1, 2] = 1857.31995917908;
             cameraMatrix[2, 0] = 0;
             cameraMatrix[2, 1] = 0;
             cameraMatrix[2, 2] = 1;
             //填充畸变矩阵
-            distCoeffs[0, 0] = -0.0867835744020699;//K1
-            distCoeffs[1, 0] = 0.151085921328026;//K2
+            distCoeffs[0, 0] = -0.0764624690658852;//K1
+            distCoeffs[1, 0] = 0.120264748067022;//K2
             distCoeffs[2, 0] = 0;//P1
             distCoeffs[3, 0] = 0;//P2
             distCoeffs[4, 0] = 0;//K3
@@ -152,18 +156,18 @@ namespace CalMotorsShit
         private void GetFrontCamParams(int spongeH)
         {
             //填充相机矩阵
-            cameraMatrix[0, 0] = 4906.60297008225;
-            cameraMatrix[0, 1] = -0.392896710343784;
-            cameraMatrix[0, 2] = 2743.45650259450;
+            cameraMatrix[0, 0] = 4904.65863917073;
+            cameraMatrix[0, 1] = 0;
+            cameraMatrix[0, 2] = 2741.32911216934;
             cameraMatrix[1, 0] = 0;
-            cameraMatrix[1, 1] = 4906.39929434443;
-            cameraMatrix[1, 2] = 1817.41481236106;
+            cameraMatrix[1, 1] = 4904.31867099732;
+            cameraMatrix[1, 2] = 1815.27169616371;
             cameraMatrix[2, 0] = 0;
             cameraMatrix[2, 1] = 0;
             cameraMatrix[2, 2] = 1;
             //填充畸变矩阵
-            distCoeffs[0, 0] = -0.0686927479104206;//K1
-            distCoeffs[1, 0] = 0.110567579512073;//K2
+            distCoeffs[0, 0] = -0.0681067014836543;//K1
+            distCoeffs[1, 0] = 0.109702270072209;//K2
             distCoeffs[2, 0] = 0;//P1
             distCoeffs[3, 0] = 0;//P2
             distCoeffs[4, 0] = 0;//K3
@@ -245,7 +249,7 @@ namespace CalMotorsShit
             if (cameraID == 0)
             {
                 GetRightCamParams(spongeH);
-                resImg = GetROI(grayImg, new Rectangle(new Point(1070, 0), new Size(4330 - 1070, 3648)));
+                resImg = GetROI(grayImg, new Rectangle(new Point(1160, 0), new Size(4300 - 1160, 3628)));
             }
             else
             {
@@ -279,7 +283,7 @@ namespace CalMotorsShit
                 #region 去除白色不相干区域块
                 VectorOfVectorOfPoint contours = new VectorOfVectorOfPoint();//区块集合
                 Image<Gray, byte> dnc = new Image<Gray, byte>(binaryImg.Width, binaryImg.Height);
-                CvInvoke.FindContours(binaryImg, contours, dnc, RetrType.External, ChainApproxMethod.ChainApproxNone);//轮廓集合
+                CvInvoke.FindContours(closingImg, contours, dnc, RetrType.External, ChainApproxMethod.ChainApproxNone);//轮廓集合
                 //CvInvoke.DrawContours(new Image<Bgr,byte>(img), contours, 0, new MCvScalar(0, 255, 255), 4);
                 myContours.Clear();
                 for (int k = 0; k < contours.Size; k++)
@@ -317,7 +321,13 @@ namespace CalMotorsShit
             List<VectorOfPoint> imageContours = GetContours(bitmap, cameraID, spongeH);
             VectorOfPoint productContour = imageContours.Max();
             Point[] pst = productContour.ToArray();//获取轮廓上所有的点集
-            //计算质心
+            //用矩计算质心
+            MCvMoments cvMoments = CvInvoke.Moments(productContour, false);
+            float gravityX = (float)(cvMoments.M10 / cvMoments.M00);
+            float gravityY = (float)(cvMoments.M01 / cvMoments.M00);
+            PointF gravityCenter = new PointF(gravityX, gravityY);
+            imageInfo.GravityCenterOfImg = gravityCenter;
+            //用X均值和Y均值计算质心
             float vx = 0;
             float vy = 0;
             foreach (var item in pst)
@@ -325,11 +335,11 @@ namespace CalMotorsShit
                 vx += item.X;
                 vy += item.Y;
             }
-            Point centriod = new Point((int)vx / pst.Length, (int)vy / pst.Length);
-            Trace.WriteLine("当前轮廓质心：VX= " + (vx / pst.Length).ToString() + "；VY=" + (vy / pst.Length).ToString());
+            PointF centriod = new PointF((float)vx / (float)pst.Length, (float)vy / (float)pst.Length);
+            
             if (productContour!=null)
             {
-                var minRect = CvInvoke.MinAreaRect(productContour); //最小外接矩形
+                RotatedRect minRect = CvInvoke.MinAreaRect(productContour); //最小外接矩形
                 PointF[] pt = CvInvoke.BoxPoints(minRect);//最小外接矩形四个角点 
                 PointF po = minRect.Center;//最小外接矩形中心
                 double rectRotatedAngle = Math.Abs(minRect.Angle) > 45 ? minRect.Angle + 90 : minRect.Angle;
@@ -344,6 +354,9 @@ namespace CalMotorsShit
                 imageInfo.RectRotatedAngle = rectRotatedAngle;
                 imageInfo.AxisLong = AxisLong;
                 imageInfo.AxisShort = AxisShort;
+                Trace.WriteLine("当前轮廓质心："+centriod.ToString());
+                Trace.WriteLine("当前外界矩形中心："+po.ToString());
+                Trace.WriteLine("X差值" + Math.Abs(centriod.X - po.X).ToString(), "Y差值" + Math.Abs(centriod.Y - po.Y).ToString());
                 #region 计算电气抓位移
                 dividedCoutour = new Dictionary<Point, int>();//储存四条分组的边的点集
 
@@ -355,7 +368,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 5 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 5 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 100 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 100)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 20 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 10 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 10)
                             {
                                 dividedCoutour[item] = 0;
                             }
@@ -365,7 +378,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X)-100 && item.X >= (p1.X > p2.X ? p2.X : p1.X)+100 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 5 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 5)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X)-20 && item.X >= (p1.X > p2.X ? p2.X : p1.X)+20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 10 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 10)
                             {
                                 dividedCoutour[item] = 1;
                             }
@@ -375,7 +388,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 5 && item.X >= (p1.X > p2.X ? p2.X : p1.X) -5 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 100 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 100)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 20 && item.X >= (p1.X > p2.X ? p2.X : p1.X) -20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 10 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 10)
                             {
                                 dividedCoutour[item] = 2;
                             }
@@ -385,7 +398,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) - 100 && item.X >= (p1.X > p2.X ? p2.X : p1.X) + 100 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 5 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 5)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) -20 && item.X >= (p1.X > p2.X ? p2.X : p1.X) +20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 20 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 20)
                             {
                                 dividedCoutour[item] = 3;
                             }
@@ -426,31 +439,58 @@ namespace CalMotorsShit
                 List<double> bottom = new List<double>();
                 List<double> left = new List<double>();
                 List<double> right = new List<double>();
-                left = GetFiveDistanceOnLine(RotatedAngle, new Point((int)centriod.X, (int)centriod.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 0).ToDictionary(a => a.Key, a => a.Value));
-                if (cameraID == 0)//R
+                left = GetFiveDistanceOnLine(rectRotatedAngle, new Point((int)gravityCenter.X, (int)gravityCenter.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 0).ToDictionary(a => a.Key, a => a.Value));
+                //if (cameraID == 0)//R
+                //{
+                //    for (int i = 0; i < left.Count; i++)
+                //    {
+                //        if (left[i] > AxisLong * 3 / 5f)
+                //        {
+                //            left[i] = 0;
+                //        }
+                //    }
+                //}
+
+                for (int i = 0; i < left.Count; i++)
                 {
-                    for (int i = 0; i < left.Count; i++)
+                    if (left[i] > AxisLong * 3 / 5f)
                     {
-                        if (left[i] > AxisLong * 3 / 5f)
-                        {
-                            left[i] = 0;
-                        }
+                        left[i] = 0;
                     }
                 }
-                up = GetFiveDistanceOnLine(RotatedAngle, new Point((int)centriod.X, (int)centriod.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 1).ToDictionary(a => a.Key, a => a.Value));
-                if (cameraID == 1)//F
-                {
+
+                up = GetFiveDistanceOnLine(rectRotatedAngle, new Point((int)gravityCenter.X, (int)gravityCenter.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 1).ToDictionary(a => a.Key, a => a.Value));
+                //if (cameraID == 1)//F
+                //{
+                //    for (int i = 0; i < up.Count; i++)
+                //    {
+                //        if (up[i] > AxisLong * 3 / 5f)
+                //        {
+                //            up[i] = 0;
+                //        }
+                //    }
+                //}
+
                     for (int i = 0; i < up.Count; i++)
                     {
-                        if (up[i] > AxisLong * 3 / 5f)
+                        if (up[i] > AxisShort * 3 / 5f)
                         {
                             up[i] = 0;
                         }
                     }
-                }
-                right = GetFiveDistanceOnLine(RotatedAngle, new Point((int)centriod.X, (int)centriod.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 2).ToDictionary(a => a.Key, a => a.Value));
-                if (cameraID == 0)//R
-                {
+
+                right = GetFiveDistanceOnLine(rectRotatedAngle, new Point((int)gravityCenter.X, (int)gravityCenter.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 2).ToDictionary(a => a.Key, a => a.Value));
+                //if (cameraID == 0)//R
+                //{
+                //    for (int i = 0; i < right.Count; i++)
+                //    {
+                //        if (right[i] > AxisLong * 3 / 5f)
+                //        {
+                //            right[i] = 0;
+                //        }
+                //    }
+                //}
+
                     for (int i = 0; i < right.Count; i++)
                     {
                         if (right[i] > AxisLong * 3 / 5f)
@@ -458,28 +498,37 @@ namespace CalMotorsShit
                             right[i] = 0;
                         }
                     }
-                }
-                bottom = GetFiveDistanceOnLine(RotatedAngle, new Point((int)centriod.X, (int)centriod.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 3).ToDictionary(a => a.Key, a => a.Value));
-                if (cameraID == 1)//F
-                {
+
+                bottom = GetFiveDistanceOnLine(rectRotatedAngle, new Point((int)gravityCenter.X, (int)gravityCenter.Y), AxisLong, AxisShort, dividedCoutour.Where(a => a.Value == 3).ToDictionary(a => a.Key, a => a.Value));
+                //if (cameraID == 1)//F
+                //{
+                //    for (int i = 0; i < bottom.Count; i++)
+                //    {
+                //        if (bottom[i] > AxisLong * 3 / 5f)
+                //        {
+                //            bottom[i] = 0;
+                //        }
+                //    }
+                //}
+
                     for (int i = 0; i < bottom.Count; i++)
                     {
-                        if (bottom[i] > AxisLong * 3 / 5f)
+                        if (bottom[i] > AxisShort * 3 / 5f)
                         {
                             bottom[i] = 0;
                         }
                     }
-                }
 
-                if (cameraID == 1)//F
-                {
-                    motorShif = left.Concat(up).Concat(right).Concat(bottom).ToList<double>();//左-上-右-下
+              
+                //if (cameraID == 1)//F
+                //{
+                motorShif = left.Concat(up).Concat(right).Concat(bottom).ToList<double>();//左-上-右-下
 
-                }
-                else
-                {
-                    motorShif = bottom.Concat(left).Concat(up).Concat(right).ToList<double>();//下-左-上-右
-                }
+                //}
+                //else
+                //{
+                //    motorShif = bottom.Concat(left).Concat(up).Concat(right).ToList<double>();//下-左-上-右
+                //}
                 double _20 = motorShif[19];
                 double _21 = motorShif[9];
                 double _22 = motorShif[8];
@@ -500,8 +549,8 @@ namespace CalMotorsShit
 
                 Matrix<double> imgCenter = new Matrix<double>(3, 1)
                 {
-                    [0, 0] = po.X,
-                    [1, 0] = po.Y,
+                    [0, 0] = gravityCenter.X,
+                    [1, 0] = gravityCenter.Y,
                     [2, 0] = 1
                 };
                 //Matrix<double> cameraCenter = imgCenter.Inverse();
@@ -532,13 +581,16 @@ namespace CalMotorsShit
         /// <param name="linePoints"></param>
         /// <param name="pr"像素比</param>
         /// <returns></returns>
-        private List<double> GetFiveDistanceOnLine(double angle,Point centerPoint, double AxisLong,double AxisShort, Dictionary<Point,int> linePoints, double pr = 1.66)
+        private List<double> GetFiveDistanceOnLine(double angle,Point centerPoint, double AxisLong,double AxisShort, Dictionary<Point,int> linePoints, int fliterPixel=70,double pr = 1.4755)
         {
-            Dictionary<Dictionary<Point, int>, string> segmentLine;//记录单边分5组--临时用
+            Dictionary<Dictionary<Point, int>, string> segmentUpLine;//记录单边分5组--临时用
             List<double> fiveD = new List<double>();
             List<Point> aLine = new List<Point>();
             Dictionary<Point, int>  segInnerLine  = new Dictionary<Point, int>();//临时做全局变量
-            segmentLine = new Dictionary<Dictionary<Point, int>, string>();
+            segmentUpLine = new Dictionary<Dictionary<Point, int>, string>();
+            Dictionary<Dictionary<Point, int>, string> segmentLeftLine = new Dictionary<Dictionary<Point, int>, string>();
+            Dictionary<Dictionary<Point, int>, string> segmentRightLine = new Dictionary<Dictionary<Point, int>, string>();
+            Dictionary<Dictionary<Point, int>, string> segmentBottomLine = new Dictionary<Dictionary<Point, int>, string>();
             //水平中线-----相机最好与传送带有1度以上夹角
             double A_ = angle > -0.01 && angle < 0.01 ? 0 : Math.Tan(angle/180f*Math.PI);
             double B_ = -1;
@@ -569,7 +621,7 @@ namespace CalMotorsShit
                 //================================
                 if (aLine[count / 2].X < width/ 2)//左
                 {
-                    if ((t_1 - 70 * pr) < 0)//最外排针刺不到棉
+                    if ((t_1 - fliterPixel * pr) < 0)//最外排针刺不到棉
                     {
                         for (int i = 0; i < aLine.Count; i++)
                         {
@@ -609,17 +661,17 @@ namespace CalMotorsShit
                             {
                                 segInnerLine[aLine[i]] = 3;
                             }
-                            else//下二
+                            else if(i<=t_1&&i>t_2)//下二
                             {
                                 segInnerLine[aLine[i]] = 4;
                             }
                         }
                     }
-                    segmentLine[segInnerLine] = "Left";
+                    segmentLeftLine[segInnerLine] = "Left";
                 }
                 else//右
                 {
-                    if ((t_1 - 70 * pr) < 0)//最外排针刺不到棉
+                    if ((t_1 - fliterPixel * pr) < 0)//最外排针刺不到棉
                     {
                         for (int i = 0; i < aLine.Count; i++)
                         {
@@ -659,13 +711,13 @@ namespace CalMotorsShit
                             {
                                 segInnerLine[aLine[i]] = 3;
                             }
-                            else//下二
+                            else if (i <= t_1 && i > t_2)//下二
                             {
                                 segInnerLine[aLine[i]] = 4;
                             }
                         }
                     }
-                    segmentLine[segInnerLine] = "Right";
+                    segmentRightLine[segInnerLine] = "Right";
                 }
                 //TODO===计算List<double>存储5个线段距离中线的距离
                 fiveD.Add(segInnerLine.Where(a => a.Value == 0).Select(a => a.Key).Average(a => {return GetPoint2LineDistance(a, A1, B1, C1); }));
@@ -696,7 +748,7 @@ namespace CalMotorsShit
                 aLine = wholeLineOrderPoints.Keys.ToList();
                 if (aLine[count/2].Y<height/2)//上
                 {
-                    if ((t_1-70*pr)<0)//最外排针刺不到棉
+                    if ((t_1- fliterPixel * pr)<0)//最外排针刺不到棉
                     {
                         for (int i = 0; i < aLine.Count; i++)
                         {
@@ -736,17 +788,17 @@ namespace CalMotorsShit
                             {
                                 segInnerLine[aLine[i]] = 3;
                             }
-                            else//左二
+                            else if (i <= t_1 && i > t_2)//左二
                             {
                                 segInnerLine[aLine[i]] = 4;
                             }
                         }
                     }
-                    segmentLine[segInnerLine] = "Up";
+                    segmentUpLine[segInnerLine] = "Up";
                 }
                 else//下
                 {
-                    if ((t_1 - 70 * pr) < 0)//最外排针刺不到棉
+                    if ((t_1 - fliterPixel * pr) < 0)//最外排针刺不到棉
                     {
                         for (int i = 0; i < aLine.Count; i++)
                         {
@@ -786,13 +838,13 @@ namespace CalMotorsShit
                             {
                                 segInnerLine[aLine[i]] = 3;
                             }
-                            else//左二
+                            else if(i<t_1&&i>t_2)//左二
                             {
                                 segInnerLine[aLine[i]] = 4;
                             }
                         }
                     }
-                    segmentLine[segInnerLine] = "Bottom";
+                    segmentBottomLine[segInnerLine] = "Bottom";
                 }
                 //TODO===计算List<double>存储5个线段距离中线的距离
                 fiveD.Add(segInnerLine.Where(a => a.Value == 0).Select(a => a.Key).Average(a => { return GetPoint2LineDistance(a, A_, B_, C_); }));
@@ -801,7 +853,10 @@ namespace CalMotorsShit
                 fiveD.Add(segInnerLine.Where(a => a.Value == 3).Select(a => a.Key).Average(a => { return GetPoint2LineDistance(a, A_, B_, C_); }));
                 fiveD.Add(segInnerLine.Where(a => a.Value == 4).Select(a => a.Key).Average(a => { return GetPoint2LineDistance(a, A_, B_, C_); }));
             }
-            segmentLines = segmentLine;
+            segmentLeftLines = segmentLeftLine;
+            segmentBottomLines = segmentBottomLine;
+            segmentRightLines = segmentRightLine;
+            segmentUpLines = segmentUpLine;
             return fiveD;
         }
 

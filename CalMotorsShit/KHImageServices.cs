@@ -249,7 +249,7 @@ namespace CalMotorsShit
             if (cameraID == 0)
             {
                 GetRightCamParams(spongeH);
-                resImg = GetROI(grayImg, new Rectangle(new Point(1160, 0), new Size(4300 - 1160, 3628)));
+                resImg = GetROI(grayImg, new Rectangle(new Point(865, 0), new Size(4215-865, 3648)));
             }
             else
             {
@@ -368,7 +368,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 20 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 10 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 10)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 20 && item.X >= (p1.X > p2.X ? p2.X : p1.X) - 20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 20 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 20)
                             {
                                 dividedCoutour[item] = 0;
                             }
@@ -378,7 +378,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X)-20 && item.X >= (p1.X > p2.X ? p2.X : p1.X)+20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 10 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 10)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X)-20 && item.X >= (p1.X > p2.X ? p2.X : p1.X)+20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) + 20 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) - 20)
                             {
                                 dividedCoutour[item] = 1;
                             }
@@ -388,7 +388,7 @@ namespace CalMotorsShit
                     {
                         foreach (var item in pst)
                         {
-                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 20 && item.X >= (p1.X > p2.X ? p2.X : p1.X) -20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 10 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 10)
+                            if (item.X <= (p1.X >= p2.X ? p1.X : p2.X) + 20 && item.X >= (p1.X > p2.X ? p2.X : p1.X) -20 && item.Y <= (p1.Y >= p2.Y ? p1.Y : p2.Y) - 20 && item.Y >= (p1.Y > p2.Y ? p2.Y : p1.Y) + 20)
                             {
                                 dividedCoutour[item] = 2;
                             }
@@ -411,10 +411,10 @@ namespace CalMotorsShit
                 LineParamters rightLineParamter = LinearRegression(dividedCoutour.Where(a => a.Value == 2).Select(a => a.Key).ToArray());
                 LineParamters bottomLineParamter = LinearRegression(dividedCoutour.Where(a => a.Value == 3).Select(a => a.Key).ToArray());
                 Dictionary<double, double> fourLineParmter = new Dictionary<double, double>();
-                fourLineParmter.Add(leftLineParamter.K, leftLineParamter.B);
-                fourLineParmter.Add(upLineParamter.K, upLineParamter.B);
-                fourLineParmter.Add(rightLineParamter.K, rightLineParamter.B);
-                fourLineParmter.Add(bottomLineParamter.K, bottomLineParamter.B);
+                //fourLineParmter.Add(leftLineParamter.K, leftLineParamter.B);
+                //fourLineParmter.Add(upLineParamter.K, upLineParamter.B);
+                //fourLineParmter.Add(rightLineParamter.K, rightLineParamter.B);
+                //fourLineParmter.Add(bottomLineParamter.K, bottomLineParamter.B);
                 imageInfo.fourLineParam = fourLineParmter;
 
                 double leftAngle = Math.Atan(leftLineParamter.K) * 180f / Math.PI;
@@ -581,7 +581,7 @@ namespace CalMotorsShit
         /// <param name="linePoints"></param>
         /// <param name="pr"像素比</param>
         /// <returns></returns>
-        private List<double> GetFiveDistanceOnLine(double angle,Point centerPoint, double AxisLong,double AxisShort, Dictionary<Point,int> linePoints, int fliterPixel=70,double pr = 1.4755)
+        private List<double> GetFiveDistanceOnLine(double angle,Point centerPoint, double AxisLong,double AxisShort, Dictionary<Point,int> linePoints, int fliterPixel=70,double pr = 1.4387)
         {
             Dictionary<Dictionary<Point, int>, string> segmentUpLine;//记录单边分5组--临时用
             List<double> fiveD = new List<double>();

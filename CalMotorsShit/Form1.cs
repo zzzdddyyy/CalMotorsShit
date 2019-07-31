@@ -20,7 +20,7 @@ namespace CalMotorsShit
         int cameraID;
         KHImageServices CenterAndSlope = new KHImageServices();
         KHImageServices.ImageInfo imgInfo = new KHImageServices.ImageInfo();
-
+        Image<Bgr, byte> bgrBinaryImg;
         public Form1()
         {
             InitializeComponent();
@@ -56,6 +56,7 @@ namespace CalMotorsShit
             }
 
             imgInfo = CenterAndSlope.GetProductParamters(myImg.Bitmap, cameraID,165);
+            bgrBinaryImg = new Image<Bgr, byte>(CenterAndSlope.BinaryImage.Bitmap);
             foreach (var item in imgInfo.ImageCorner)
             {
                 CvInvoke.Circle(myImg, new Point((int)item.X, (int)item.Y),10, new MCvScalar(0, 255, 33),10);
@@ -107,26 +108,36 @@ namespace CalMotorsShit
             {
                 CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 0, 255), 3);//Red
                 CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
+                CvInvoke.Line(bgrBinaryImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 0, 255), 3);
+
+
             }
             foreach (var item in bottomLine.Where(a => a.Value == 1))
             {
                 CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 255), 3);//Yellow
                 CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 255), 3);
+                CvInvoke.Line(bgrBinaryImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 255), 3);
+
             }
             foreach (var item in bottomLine.Where(a => a.Value == 2))
             {
                 CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(0, 255, 5), 3);//Green
                 CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 5), 3);
+                CvInvoke.Line(bgrBinaryImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(0, 255, 5), 3);
+
             }
             foreach (var item in bottomLine.Where(a => a.Value == 3))
             {
                 CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 0, 0), 3);//Blue
                 CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 0, 0), 3);
+                CvInvoke.Line(bgrBinaryImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 0, 0), 3);
             }
             foreach (var item in bottomLine.Where(a => a.Value == 4))
             {
                 CvInvoke.Circle(myImg, new Point(item.Key.X, item.Key.Y), 5, new MCvScalar(255, 10, 255), 3);//Blue
                 CvInvoke.Line(myImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 10, 255), 3);
+                CvInvoke.Line(bgrBinaryImg, new Point(item.Key.X, item.Key.Y), new Point((int)imgInfo.CenterOfImg.X, (int)imgInfo.CenterOfImg.Y), new MCvScalar(255, 10, 255), 3);
+
             }
 
             ////++++++++++++up++++++++++++++++++++
@@ -215,20 +226,24 @@ namespace CalMotorsShit
             int y0 = (int)(imgInfo.CenterOfImg.Y - Math.Tan(imgInfo.RotatedAngle / 180f * Math.PI) * imgInfo.CenterOfImg.X);
             int y5472= (int)(imgInfo.CenterOfImg.Y + Math.Tan(imgInfo.RotatedAngle / 180f * Math.PI) * (5472-imgInfo.CenterOfImg.X));
             CvInvoke.Line(myImg, new Point(0, y0), new Point(5472, y5472), new MCvScalar(23, 25, 200), 10);
+            CvInvoke.Line(bgrBinaryImg, new Point(0, y0), new Point(5472, y5472), new MCvScalar(0, 0, 255), 10);
             //y=0
             int x0 = (int)(imgInfo.CenterOfImg.X+ Math.Tan(imgInfo.RotatedAngle / 180f * Math.PI)*imgInfo.CenterOfImg.Y);
             int x3648 = (int)(imgInfo.CenterOfImg.X- Math.Tan(imgInfo.RotatedAngle / 180f * Math.PI) * (3648-imgInfo.CenterOfImg.Y));
-            CvInvoke.Line(myImg, new Point(x0, 0), new Point(x3648, 3648), new MCvScalar(223, 25, 20), 10);
+            CvInvoke.Line(myImg, new Point(x0, 0), new Point(x3648, 3648), new MCvScalar(0, 0, 255), 10);
+            CvInvoke.Line(bgrBinaryImg, new Point(x0, 0), new Point(x3648, 3648), new MCvScalar(0, 0, 255), 10);
 
 
             //x=0
             int y0rect = (int)(imgInfo.RectCenterOfImg.Y - Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * imgInfo.RectCenterOfImg.X);
             int y5472rect = (int)(imgInfo.RectCenterOfImg.Y + Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * (5472 - imgInfo.RectCenterOfImg.X));
-            CvInvoke.Line(myImg, new Point(0, y0rect), new Point(5472, y5472rect), new MCvScalar(223, 25, 20), 2);
+            CvInvoke.Line(myImg, new Point(0, y0rect), new Point(5472, y5472rect), new MCvScalar(225,0,0), 2);
+            CvInvoke.Line(bgrBinaryImg, new Point(0, y0rect), new Point(5472, y5472rect), new MCvScalar(225,00), 2);
             //y=0
             int x0rect = (int)(imgInfo.RectCenterOfImg.X + Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * imgInfo.RectCenterOfImg.Y);
             int x3648rect = (int)(imgInfo.RectCenterOfImg.X - Math.Tan(imgInfo.RectRotatedAngle / 180f * Math.PI) * (3648 - imgInfo.RectCenterOfImg.Y));
-            CvInvoke.Line(myImg, new Point(x0rect, 0), new Point(x3648rect, 3648), new MCvScalar(23, 25, 200), 10);
+            CvInvoke.Line(myImg, new Point(x0rect, 0), new Point(x3648rect, 3648), new MCvScalar(255,0,0), 10);
+            CvInvoke.Line(bgrBinaryImg, new Point(x0rect, 0), new Point(x3648rect, 3648), new MCvScalar(255,0,0), 10);
 
             FlashLogger.Info("X-Y均值计算质心：" + imgInfo.CenterOfImg.ToString() + "\r\n外接矩形中心：" + imgInfo.RectCenterOfImg.ToString() + "\r\nHu矩计算质心：" + imgInfo.GravityCenterOfImg.ToString() + "\r\n"); ;
 
@@ -270,8 +285,20 @@ namespace CalMotorsShit
 
         private void btnDetect_Click(object sender, EventArgs e)
         {
+            
+            foreach (PointF item in imgInfo.ImageCorner)
+            {
+                CvInvoke.Circle(bgrBinaryImg, new Point((int)item.X, (int)item.Y), 8, new MCvScalar(0, 2, 255), 8);
+            }
+            for (int i = 0; i < 4; ++i)
+            {
+                Point p1 = new Point((int)imgInfo.ImageCorner[i].X, (int)imgInfo.ImageCorner[i].Y);
+
+                Point p2 = new Point((int)imgInfo.ImageCorner[(i + 1) % 4].X, (int)imgInfo.ImageCorner[(i + 1) % 4].Y);
+                CvInvoke.Line(bgrBinaryImg, p1, p2, new MCvScalar(200, 255, 0), 8);
+            }
             //显示二值化图：
-            frmROI frmROI = new frmROI(CenterAndSlope.BinaryImage.Bitmap);
+            frmROI frmROI = new frmROI(bgrBinaryImg.Bitmap);
  
             frmROI.Show();
         }
